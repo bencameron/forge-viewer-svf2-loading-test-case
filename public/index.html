@@ -1,0 +1,52 @@
+<html>
+    <head>
+        <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1, user-scalable=no" />
+        <meta name="author" content="Eason Kang" />
+        <meta charset="utf-8">
+        <link rel="shortcut icon" href="https://github.com/Autodesk-Forge/learn.forge.viewmodels/raw/master/img/favicon.ico">
+
+        <title>Autodesk Forge Viewer Svf2 test case</title>
+        <style>
+            body {
+              margin: 0;
+              padding: 0;
+            }
+          </style>
+    </head>
+    <body>
+        <h1>Forge Viewer SVF2 Test Case</h1>
+        <table border="1" style="width:800px">
+            <thead>
+                <caption>Load svf2 models without svf2 cache, <b>Recommended</b></caption>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>
+                        <a href="AggregatedView.html?disableIndexedDb=true">Load svf2 models with AggregatedView</a>
+                    </td>
+                    <td>
+                        <a href="MultipleModelUtil.html?disableIndexedDb=true">Load svf2 models with MultipleModelUtil</a>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+
+        <br/>
+
+        <table border="1" style="width:800px">
+            <thead>
+                <caption>Load svf2 models under HTTP mode and without svf2 cache, <br/><b>Not Recommended</b>, no guarantee it works as expected, just for testing</caption>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>
+                        <a href="AggregatedView.html?disableIndexedDb=true&disableWebSocket=true">Load svf2 models with AggregatedView under HTTP mode</a>
+                    </td>
+                    <td>
+                        <a href="MultipleModelUtil.html?disableIndexedDb=true&disableWebSocket=true">Load svf2 models with MultipleModelUtil under HTTP mode</a>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </body>
+</html>

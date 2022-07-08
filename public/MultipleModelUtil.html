@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Forge Viewer - Multiple model demo</title>
+    <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1, user-scalable=no" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge"> 
+    <meta charset="utf-8">
+
+    <!-- The Viewer CSS -->
+    <link rel="stylesheet" href="https://developer.api.autodesk.com/viewingservice/v1/viewers/7.*/style.min.css" type="text/css">
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div id="viewer"></div>
+
+    <!-- The Viewer JS -->
+    <script src="https://developer.api.autodesk.com/viewingservice/v1/viewers/7.*/viewer3D.js"></script>
+    <script src="MultipleModelUtil.js"></script>
+
+    <!-- Developer JS -->
+    <script>
+        function launchViewer( models ) {
+          if( !models || models.length <= 0 )
+            return console.error( 'Empty model input' );
+
+            const options = {
+            env: 'AutodeskProduction2',
+            api: 'streamingV2',
+            getAccessToken: async function (callback) {
+                const resp = await fetch('/api/auth/token');
+                if (resp.ok) {
+                    const token = await resp.json();
+                    callback(token.access_token, token.expires_in);
+                } else {
+                    throw new Error(await resp.text());
+                }
+            }
+          };
+
+          Autodesk.Viewing.Initializer( options, function() {
+
+            //get the viewer div
+            const viewerDiv = document.getElementById( 'viewer' );
+
+            //initialize the viewer object
+            const viewer = new Autodesk.Viewing.Private.GuiViewer3D( viewerDiv, { modelBrowserStartCollapsed: true, startCollapsed: true } );
+
+            //load model one by one in sequence
+            const util = new MultipleModelUtil( viewer );
+            // Use origin-to-origin alignment
+            // util.options = {
+            //   alignment: MultipleModelAlignmentType.OriginToOrigin
+            // };
+
+            // Use custom alignment
+            // util.options = {
+            //   alignment: MultipleModelAlignmentType.Custom,
+            //   getCustomLoadOptions: (bubble, data) => {
+            //     console.log(bubble, data);
+
+            //     const tx = new THREE.Matrix4();
+            //     tx.setPosition({ x:1, y:100, z:1 }).scale({ x:2, y:2, z:2 });
+            //     return {
+            //       placementTransform: tx
+            //     };
+            //   }
+            // };
+
+            // Register AGGREGATE_GEOMETRY_LOADED_EVENT handler from MultipleModelUtil to know when all models's geometries are loaded completely
+            viewer.addEventListener(
+              MultipleModelUtil.AGGREGATE_GEOMETRY_LOADED_EVENT,
+              console.log
+            );
+          
+            // Start loading models
+            util.processModels( models );
+          });
+        }
+
+        const models = [
+          { name: 'A.rvt', urn: 'urn:dXJ...' },
+          { name: 'B.rvt', urn: 'urn:dXJ...' },
+          { name: 'C.rvt', urn: 'urn:dXJ...' },
+          { name: 'D.rvt', urn: 'urn:dXJ...' },
+          { name: 'E.rvt', urn: 'urn:dXJ...' }
+        ];
+
+        launchViewer( models.concat() );
+    </script>
+  </body>
+</html>
