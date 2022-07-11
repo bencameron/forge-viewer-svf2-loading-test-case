@@ -61,11 +61,27 @@
 
           function loadManifest( documentId ) {
             return new Promise(( resolve, reject ) => {
-              const onDocumentLoadSuccess = ( doc ) => {
-                doc.downloadAecModelData(() => resolve(doc));
-              };
+              const onDocumentLoadSuccess = ( doc ) => resolve(doc);
               Autodesk.Viewing.Document.load( documentId, onDocumentLoadSuccess, reject );
             });
+          }
+
+          function checkModels(models) {
+            let allGood = true;
+
+            models.forEach(model => {
+              if (!model.isLoadDone()) {
+                allGood = false;
+                console.log(`isLoadDone() false for modelId ${model.id}`);
+              }
+
+              if (!model.getData().instanceTree) {
+                allGood = false;
+                console.log(`instanceTree not available for modelId ${model.id}`);
+              }
+            })
+
+            return allGood;
           }
 
           Autodesk.Viewing.Initializer( options, function() {
@@ -90,16 +106,56 @@
 
                       return bubble;
                     })))
-                    .then( bubbles => view.setNodes( bubbles ) );
+                    .then( bubbles => view.setNodes( bubbles ) )
+                    .then( models => {
+                      models.forEach((model, index) => {
+                        let matrix = new THREE.Matrix4();
+                        matrix.setPosition({ x: (index * 100), y: 1, z:1 })
+                        model.setPlacementTransform(matrix);
+                      });
+
+                      return models;
+                    })
+                    .then( models => {
+                      let retry = 0;
+
+                      const timer = setInterval(() => {
+                          if (!checkModels(models)) {
+                              if (retry >= 30) {
+                                  clearInterval(timer);
+                                  let remainingModels = models.map(model => model.id);
+                                  console.error('Unable to load models: ' + remainingModels);
+                              } else {
+                                  retry++;
+                                  console.info(`Expected data not loaded for all models (retry ${retry} -- ${new Date()})`);
+                              }
+                          } else {
+                              clearInterval(timer);
+                              console.info('All models fully loaded!');
+                          }            
+                      }, 1000);                         
+                    });
           });
         }
 
         const models = [
-          { name: 'A.rvt', urn: 'urn:dXJ...' },
-          { name: 'B.rvt', urn: 'urn:dXJ...' },
-          { name: 'C.rvt', urn: 'urn:dXJ...' },
-          { name: 'D.rvt', urn: 'urn:dXJ...' },
-          { name: 'E.rvt', urn: 'urn:dXJ...' }
+          //{ urn: 'urn:' },
+          { urn: 'urn:dXJuOmFkc2sub2JqZWN0czpvcy5vYmplY3Q6c3ZmLXRlbXAvZjFhZmRmZWEtMTQ2Ny00NDcwLTk2NjUtYTkxOGRlMzEyMzllLnppcA==' },
+          { urn: 'urn:dXJuOmFkc2sub2JqZWN0czpvcy5vYmplY3Q6c3ZmLXRlbXAvYjkxZjhiODEtYmI0YS00ZjZmLThiN2ItMTFlZWJhNTIxM2M5LnppcA==' },
+          { urn: 'urn:dXJuOmFkc2sub2JqZWN0czpvcy5vYmplY3Q6c3ZmLXRlbXAvZWNlYWE1MzktMTg5MC00ZGQxLTg3MDAtMzExZjdiN2YzMzkyLnppcA==' },
+          { urn: 'urn:dXJuOmFkc2sub2JqZWN0czpvcy5vYmplY3Q6c3ZmLXRlbXAvZTc5ZGNhYzYtNDM0Mi00ZWQzLTk2NWMtMzg2MDhiNDEwMGE5LnppcA==' },
+          { urn: 'urn:dXJuOmFkc2sub2JqZWN0czpvcy5vYmplY3Q6c3ZmLXRlbXAvMmEwMTEzOGQtZjI1ZS00Nzk0LTg2YzktYThlZmUyMGY0NDkyLnppcA==' },
+          { urn: 'urn:dXJuOmFkc2sub2JqZWN0czpvcy5vYmplY3Q6c3ZmLXRlbXAvZTAwM2QzYjEtZDdiNC00NjQwLThkNjQtMDAwMDcyODJiNmMwLnppcA==' },
+          { urn: 'urn:dXJuOmFkc2sub2JqZWN0czpvcy5vYmplY3Q6c3ZmLXRlbXAvNmEyYmQzNTktZmQxOS00MGE3LWE1NDktOWFkZWI1ODdkOTUyLnppcA==' },
+          { urn: 'urn:dXJuOmFkc2sub2JqZWN0czpvcy5vYmplY3Q6c3ZmLXRlbXAvZjE0MzUzZWEtODQ0NS00ZWNhLWIyYmYtN2Q5Y2YwYTZiYTU2LnppcA==' },
+
+          // { urn: 'urn:dXJuOmFkc2sub2JqZWN0czpvcy5vYmplY3Q6c3ZmLXRlbXAvNjRlMTRmOTItNDZiNi00ZGFkLThmMzItMmEyMTNhZTE5Y2U4LnppcA==' },
+          // { urn: 'urn:dXJuOmFkc2sub2JqZWN0czpvcy5vYmplY3Q6c3ZmLXRlbXAvZmRkYmQyYjUtYzk5Ny00NzIzLWI1MTQtODY3ZWRkNGJkNTY0LnppcA==' },
+          // { urn: 'urn:dXJuOmFkc2sub2JqZWN0czpvcy5vYmplY3Q6c3ZmLXRlbXAvOTBmMmQ5NTQtMTliNS00ZGVlLTliNWMtZTMzMDBhNTliYjJmLnppcA==' },
+          // { urn: 'urn:dXJuOmFkc2sub2JqZWN0czpvcy5vYmplY3Q6c3ZmLXRlbXAvODMxYTQ5YjQtNmJlYy00MzFjLWE5MTQtZTViYWJlOGRhN2NmLnppcA==' },
+          // { urn: 'urn:dXJuOmFkc2sub2JqZWN0czpvcy5vYmplY3Q6c3ZmLXRlbXAvMDVlNzY2MWMtZTc5Yi00MDQzLWEyMGMtYTVmNDBlNTkxZDIxLnppcA==' },
+          // { urn: 'urn:dXJuOmFkc2sub2JqZWN0czpvcy5vYmplY3Q6c3ZmLXRlbXAvNWYzYzk0NDgtYWM5OS00YjliLTk4MDItMWE2NWQ0Njg2MjBmLnppcA==' },
+          // { urn: 'urn:dXJuOmFkc2sub2JqZWN0czpvcy5vYmplY3Q6c3ZmLXRlbXAvN2Q5NTIwNDMtNjkwYi00ZTM0LTk5MjgtY2Q4OTFjMzFlNzk0LnppcA==' }
         ];
 
         launchViewer( models.concat() );
